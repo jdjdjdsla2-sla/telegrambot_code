@@ -1,3 +1,13 @@
 {
-    "geminicodeassist.outlines.automaticOutlineGeneration": true
+  "continue.useLocalConfig": true,
+  "continue.browserTimeoutSeconds": 120,
+  "editor.inlineSuggest.enabled": true,
+  "continue.enableTabAutocomplete": true,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  },
+  "editor.formatOnSave": true
 }
