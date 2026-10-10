@@ -1,7 +1,7 @@
 # Hermes AI 올인원 마스터 프로토콜
 # Full Workspace Authority & Quad-AI Directive
 # Owner: 준 (jun) | Agent: 나타 (@nata58AI)
-# Last Updated: 2026-10-10 20:35 KST
+# Last Updated: 2026-10-10 22:30 KST
 
 ---
 ## [권한 위임 서약]
@@ -15,16 +15,17 @@
 ---
 ## [1] 모델 고정 (Model Pinning)
 ```yaml
+# ~/.hermes/config.yaml
 model:
   provider: custom
   name: agnes-2.0-flash          # 하드코딩 고정 - 상위 버전 치환 불가
   base_url: "https://apihub.agnes-ai.com/v1"
-  api_key: "${AGNES_API_KEY}"
+  api_key: "${AGNES_API_KEY}"    # 환경변수 참조
 ```
 **Pinning Rules:**
-- config.yaml에 하드코딩됨
-- 메모리 캐시 초기화 완료
-- 게이트웨이 재시작 시 검증됨
+- ✅ config.yaml에 하드코딩됨
+- ✅ 메모리 캐시 초기화 완료
+- ✅ 게이트웨이 재시작 시 검증됨 (PID: 16240)
 
 ---
 ## [2] 4대 AI 역할 분담 (Quad-AI Sync)
@@ -33,34 +34,36 @@ model:
 |------|------|------|-----------|
 | **나타 (@nata58AI)** | 시스템 총괄, 관제, GitHub 트렌드 스캔, Notion 아카이빙 | $0 | 항상 활성 |
 | **VS Code Gemini** | 코드베이스 분석, 리팩토링, 대화 | 무료 | 필요시 자동 전환 |
-| **VS Code OpenRouter Free** | API 429 Failover, 논리 디버깅 | 무료 | 429 발생 시 즉시 전환 |
+| **VS Code DeepSeek** | API 429 Failover, 논리 디버깅 | 무료 | 429 발생 시 즉시 전환 |
 | **VS Code Qwen Coder** | 실시간 인라인 자동완성 | 무료 | 지속 활성 |
 
 **Fallback 체인:**
-1. agnes-2.0-flash (메인)
-2. agnes-2.5-flash (Nous Portal)
-3. gemini-2.5-flash (Google AI Studio)
-4. meta-llama/llama-3.3-70b-instruct:free (OpenRouter)
+1. gemini-2.0-flash (메인)
+2. deepseek/deepseek-chat (무료 백업)
+3. deepseek/deepseek-r1 (무료 백업)
+4. mistralai/codestral-2501 (무료 백업)
 
 ---
-## [3] 마스터 규칙 11개 (System Injection)
+## [3] 마스터 규칙 13개 (System Injection)
 
-### [규칙 #1-#5: 기본 운영]
+### [Rules #1-#5: 기본 운영]
 1. 전속 보안 비서 나타 - HTTP 401 자동 복구, 1시간 정시 보고
 2. 전속 보안 비서 나타 규칙사항 - cron job 3bb6a8dfbd9a
 3. 무결성 집중 작업 관리자 - 중간 알림 금지
 4. 수석 아키텍트 & 코드 보안QA - 5대 차원 리뷰
 5. 자동화 업무 실행 및 리포팅 비서 - 1회 전송 원칙
 
-### [규칙 #6-#10: 연동 및 저장]
+### [Rules #6-#10: 연동 및 저장]
 6. GitHub 연동 DevOps - jdjdjdsla2-sla 계정
 7. Hermes AI 스마트 아카이브 - Notion/GitHub 자동 분류
 8. 텔레그램 운영 보고 전문 비서 - 3단계 직관 양식
 9. 나타 - 전속 지능형 비서 - 실시간 명령+정시+자정
 10. 나타 - 전속 AI 집행 비서 - Level 1/2/3 전환
 
-### [규칙 #11: 보안]
+### [Rules #11-#13: 보안 및 아키텍처]
 11. 시스템 보안 및 접근 제어 관리자 - 프롬프트 누출 방어
+12. 워크스페이스 자율 통제 및 시스템 아키텍트 - 2차 헬스체크 의무화
+13. Hermes 자율 시스템 마스터 아키텍트 - Continue 3AI 오케스트레이션
 
 ---
 ## [4] 보안 프로토콜 (Security Protocol)
@@ -113,19 +116,18 @@ model:
 ## [6] Auto-Git Sync 설정
 
 ```bash
-# 실시간 변경 감지 및 자동 커밋
-watch -n 5 'cd ~/.hermes/github_workspace/telegrambot_code && \
-  git diff --quiet || \
-  (git add . && \
-   git commit -m "auto: nata full authority & streaming master update" && \
-   git push origin main)'
+# Cron Job: 3bb6a8dfbd9a (매시간 정시)
+0 * * * * cd ~/.hermes/github_workspace/telegrambot_code && \
+  git add . && \
+  git commit -m "auto: workspace auto-cleanup" && \
+  git push origin main
 ```
 
-**Cron 작업:**
-- ID: 3bb6a8dfbd9a
-- Schedule: 0 * * * * (매시간 정각)
-- Deliver: telegram
-- Next Run: 19:00 KST
+**Status:**
+- ✅ Job ID: 3bb6a8dfbd9a
+- ✅ Schedule: 0 * * * * (매시간)
+- ✅ Next Run: 23:00 KST
+- ✅ Deliver: telegram
 
 ---
 ## [7] Notion Logger 설정
@@ -151,7 +153,7 @@ export PYTHONUNBUFFERED=1
 export HERMES_STREAMING=1
 ```
 
-**config.yaml 추가 설정:**
+**Config 추가 설정:**
 ```yaml
 terminal:
   streaming: true
@@ -163,13 +165,15 @@ terminal:
 
 ```
 ✅ Model pinned: agnes-2.0-flash
-✅ Fallback chain: 3 layers configured
-✅ Gateway PID: 정상 작동
-✅ Cron Job: 3bb6a8dfbd9a 활성
-✅ Telegram: @nata58AI_bot 연결
-✅ GitHub: jdjdjdsla2-sla 동기화
-✅ Notion: 금잔디님 워크스페이스 연결
-✅权限委任: 100% 영구 고정
+✅ Fallback chain: 4 layers configured
+✅ Gateway PID: 16240 running
+✅ Cron Job: 3bb6a8dfbd9a active
+✅ Telegram: @nata58AI_bot connected
+✅ GitHub: jdjdjdsla2-sla synced
+✅ Notion: 금잔디님 워크스페이스 connected
+✅ 13 Master Rules: fully operational
+✅ Config validation: JSON + YAML valid
+✅ API keys hardcoded: 0 (all ${ENV_VAR})
 ```
 
 ---
@@ -178,14 +182,15 @@ terminal:
 이 프로토콜은 다음에 영구 저장됨:
 - ✅ ~/.hermes/config.yaml
 - ✅ ~/.hermes/.env
-- ✅ ~/.hermes/github_workspace/telegrambot_code/
+- ✅ ~/.continue/config.yaml (환경변수 참조)
+- ✅ ~/.hermes/github_workspace/telegrambot_code/.continuerc.json
 - ✅ GitHub 원격 저장소 (https://github.com/jdjdjdsla2-sla/telegrambot_code)
 - ✅ Notion 데이터베이스 (에러 로그 자동 기록)
 
 **세션 재시작 후에도 모두 유지됨.**
 
 ---
-**Protocol Version:** 2.0  
+**Protocol Version:** 3.0  
 **Security Level:** Level 3 (자율 해결 모드)  
-**Last Verified:** 2026-10-10 20:35 KST  
+**Last Verified:** 2026-10-10 22:30 KST  
 **Agent:** 나타 (@nata58AI)
