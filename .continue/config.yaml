@@ -1,0 +1,39 @@
+# ============================================
+# VS Code Continue - 3AI 자동 구성
+# 생성일: 2026-10-10
+# 소유주: 준 (jun)
+# 에이전트: 나타 (@nata58AI)
+# ============================================
+
+models:
+  - title: "Gemini 2.0 Flash"
+    provider: gemini
+    model: gemini-2.0-flash
+    apiKey: "${GEMINI_API_KEY}"
+    primary: true
+  
+  - title: "OpenRouter Llama 3.3 70B (Free)"
+    provider: openrouter
+    model: meta-llama/llama-3.3-70b-instruct:free
+    apiKey: "${OPENROUTER_API_KEY}"
+    primary: false
+  
+  - title: "OpenRouter Qwen 2.5 Coder 32B (Free)"
+    provider: openrouter
+    model: qwen/qwen-2.5-coder-32b-instruct:free
+    apiKey: "${OPENROUTER_API_KEY}"
+    autocomplete: true
+
+# 자동완성 설정
+autocomplete:
+  provider: openrouter
+  model: qwen/qwen-2.5-coder-32b-instruct:free
+
+# 429 Failover 설정
+failover:
+  enabled: true
+  models:
+    - gemini-2.0-flash
+    - meta-llama/llama-3.3-70b-instruct:free
+    - qwen/qwen-2.5-coder-32b-instruct:free
+  retryDelay: 100  # 0.1초 대기 후 재시도
