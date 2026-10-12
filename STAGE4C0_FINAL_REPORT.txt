@@ -1,0 +1,144 @@
+# Stage 4-C0 최종 보고 — 플러그인 규약 검증 완료
+
+## 개요
+
+**작업명**: Stage 4-C0 플러그인 로딩 및 훅 반환값 검증  
+**완료일**: 2026-10-11  
+**상태**: ✅ 완료  
+
+---
+
+## [1단계] 개요
+
+- Gateway 공식 플러그인 규약: `register(ctx)` 함수 패턴
+- 기존 `install()` 함수 → `register(ctx)`로 수정 필요
+- `ctx.register_hook(name, callback)`으로 훅 등록
+- 테스트 161/161 통과
+
+---
+
+## [2단계] 세부 수행내역
+
+### 2.1 플러그인 규약 조사 결과
+
+| 항목 | 결과 | 근거 |
+|------|------|------|
+| 공식 규약 | `register(ctx)` | `plugins/disk-cleanup/__init__.py:231` |
+| hook 등록 방식 | `ctx.register_hook(name, callback)` | `hermes_cli/plugins.py:233` |
+| plugin_manager 접근 | 비권장 | `hermes_cli/plugins.get_plugin_manager()` |
+| install() 함수 | **비공식** | Gateway가 자동 로드하지 않음 |
+
+### 2.2 수정된 파일
+
+| 파일 | 변경 내용 | 상태 |
+|------|----------|------|
+| `remote_dev/plugin.py` | `install()` → `register(ctx)` 변경 | ✅ |
+| `remote_dev/router.py` | async 핸들러, await 추가 | ✅ |
+| `tests/test_router.py` | 48개 신규 테스트 | ✅ |
+
+### 2.3 훅 반환값 동작 검증
+
+| 반환값 | boolean | Gateway 처리 | 메시지 흐름 |
+|--------|---------|-------------|------------|
+| `{}` | **False** | pass-through | 계속 전달 ✅ |
+| `None` | **False** | pass-through | 계속 전달 ✅ |
+| `{"action": "skip"}` | **True** | 드랍 | 메시지 제거 ✅ |
+| `{"action": "rewrite", "text": "..."}` | **True** | 교체 | text 수정 후 전달 |
+
+### 2.4 일반 대화 메시지 처리 경로
+
+```
+Telegram 메시지 수신
+        │
+        ▼
+┌─────────────────────┐
+│ pre_gateway_dispatch │
+└─────────────────────┘
+        │
+        ▼
+   text.startswith('/')?
+        │
+   ┌────┴────┐
+   │         │
+  YES       NO
+   │         │
+   ▼         ▼
+┌────────┐  ┌──────────┐
+│ 명령어 │  │ {} 반환  │
+│ 파싱   │  │ pass-    │
+└────────┘  │ through  │
+            └──────────┘
+```
+
+**검증 결과**: 일반 대화 메시지는 `{}` 반환 → Gateway가 기존 처리 흐름 유지
+
+### 2.5 보안 점검 결과
+
+| 항목 | 검증 방법 | 결과 |
+|------|----------|------|
+| `/조사` 읽기 전용 | TaskStatus.QUEUED만 사용 | ✅ |
+| `/실행` 승인 대기 | TaskStatus.WAITING_APPROVAL | ✅ |
+| 승인 전 running 불가 | approved=False 강제 | ✅ |
+| 소유권 검증 | user_id != user_id 검사 | ✅ |
+| 민감정보 마스킹 | sanitize_sensitive_info() | ✅ |
+| 인증 실패 안전 거부 | API 키 미포함 메시지 | ✅ |
+
+### 2.6 테스트 결과
+
+```
+tests/test_notifications.py ............ 15 passed
+tests/test_remote_dev.py .............. 57 passed
+tests/test_router.py .................. 48 passed
+tests/test_task_queue.py .............. 41 passed
+────────────────────────────────────────
+총계 .................................. 161 passed, 0 failed
+```
+
+---
+
+## [3단계] 특이사항
+
+### 3.1 발견된 문제 및 수정
+
+| 문제 | 수정 내용 |
+|------|----------|
+| `install()` 비공식 함수 | `register(ctx)`로 변경 |
+| `pre_gateway_dispatch_handler` 비동기 누락 | `await` 추가 |
+| 핸들러 sync 함수 | async로 변경 |
+
+### 3.2 운영 설치 준비 사항
+
+```
+~/.hermes/hermes-agent/plugins/remote_dev/
+├── __init__.py          # 패키지 초기화
+├── plugin.py            # register(ctx) 진입점
+├── router.py            # async 핸들러
+├── auth.py              # 인증 관리자
+├── command_parser.py    # 명령어 파서
+├── task_queue.py        # 작업 대기열
+├── notifications.py     # 알림 서비스
+└── notion_adapter.py    # Notion 어댑터
+```
+
+### 3.3 다음 단계 (Stage 4-C)
+
+1. 플러그인 디렉터리 생성
+2. 파일 복사
+3. Gateway 재시작
+4. 실제 Telegram 명령 테스트
+
+---
+
+## 요약
+
+| 구분 | 내용 |
+|------|------|
+| 플러그인 규약 | `register(ctx)` 패턴 공식 확인 |
+| 훅 반환값 | `{}`/`None` = pass-through, `skip` = 드랍 |
+| 일반 대화 | pass-through 유지 확인 |
+| 보안 | 모든 체크 통과 |
+| 테스트 | 161/161 통과 |
+| 파일 수정 | plugin.py, router.py |
+| 보고서 | STAGE4C0_PLUGIN_VALIDATION_REPORT.md 작성 |
+
+**Stage 4-C0 완료**. 운영 설치 준비 완료.

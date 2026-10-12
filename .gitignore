@@ -1,1 +1,10 @@
 .continue/config.yaml
+
+# secrets & logs (added by hardening 2026-10-12)
+.env
+.env.*
+auth.json
+*.log
+*.pem
+*.key
+credentials*.json
