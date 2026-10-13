@@ -18,7 +18,12 @@ Purpose: canonical record of owner-issued standing directives that should persis
 - Git commit, push, and backup sync allowed.
 - Hermes gateway, cron, and service operations allowed.
 - External connector OAuth and approval flows allowed.
+- OpenAI is reserved for cost, usage, and key management when needed.
+- OpenAI secrets must stay in the local secret store or `.env`, never in GitHub.
+- Use `OPENAI_API_KEY` for general OpenAI runtime recognition in Hermes.
+- Use `VOICE_TOOLS_OPENAI_KEY` only for voice transcription / TTS paths that explicitly require it.
 
 ## Notes
 - Credentials are excluded from this log.
 - Update this file when a new standing directive is granted or revoked.
+- The OpenAI key itself is still not present in the workspace; only the target storage rule is recorded here.
